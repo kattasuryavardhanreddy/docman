@@ -1,0 +1,65 @@
+services:
+  sqlserver:
+    image: mcr.microsoft.com/mssql/server:2022-latest
+    environment:
+      - ACCEPT_EULA=Y
+      - MSSQL_SA_PASSWORD=YourStrong!Pass123
+    ports:
+      - "1433:1433"
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+
+  azurite:
+    image: mcr.microsoft.com/azure-storage/azurite
+    command: azurite-blob --blobHost 0.0.0.0 --skipApiVersionCheck
+    ports:
+      - "10000:10000"
+
+  docman-api:
+    build:
+      context: .
+      dockerfile: DocMan.Api/Dockerfile
+    ports:
+      - "5190:5000"
+    environment:
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=DocManDb;User Id=sa;Password=YourStrong!Pass123;TrustServerCertificate=True;
+      - Redis__ConnectionString=redis:6379
+      - Blob__ConnectionString=DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;
+      - Blob__ContainerName=documents
+      - Jwt__Key=KatT@$$UryA^@RdhaNReddy#18@99544Vi6a2InnOv@T>
+      - Jwt__Issuer=docman-api
+      - Jwt__Audience=docman-client
+    depends_on:
+      - sqlserver
+      - redis
+      - azurite
+
+  docman-worker:
+    build:
+      context: .
+      dockerfile: DocMan.Worker/Dockerfile
+    environment:
+      - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=DocManDb;User Id=sa;Password=YourStrong!Pass123;TrustServerCertificate=True;
+      - Redis__ConnectionString=redis:6379
+      - Blob__ConnectionString=DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;
+      - Blob__ContainerName=documents
+    depends_on:
+      - sqlserver
+      - redis
+      - azurite
+
+  docman-ui:
+    build:
+      context: ./Frontend/docman
+      dockerfile: Dockerfile
+      args:
+        DOCMAN_API_BASE_URL: http://docman-api:5000
+    ports:
+      - "3000:3000"
+    environment:
+      - DOCMAN_API_BASE_URL=http://docman-api:5000
+    depends_on:
+      - docman-api
