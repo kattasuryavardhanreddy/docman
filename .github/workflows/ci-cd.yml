@@ -1,0 +1,62 @@
+name: Build and Push Images to ACR
+
+on:
+  push:
+    branches:
+      - main
+
+env:
+  ACR_NAME: ${{ secrets.ACR_NAME }}
+  REGISTRY: ${{ secrets.ACR_NAME }}.azurecr.io
+  TAG: ${{ github.sha }}
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Login to Azure
+        uses: azure/login@v2
+        with:
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+
+      - name: Login to ACR
+        run: az acr login --name $ACR_NAME
+
+      # =========================
+      # =========================
+      - name: Build & Push DocMan.Api
+        run: |
+          docker build -f DocMan.Api/Dockerfile \
+            -t $REGISTRY/docman-api:$TAG \
+            -t $REGISTRY/docman-api:latest \
+            .
+          docker push $REGISTRY/docman-api:$TAG
+          docker push $REGISTRY/docman-api:latest
+
+      # =========================
+      # =========================
+      - name: Build & Push DocMan.Worker
+        run: |
+          docker build -f DocMan.Worker/Dockerfile \
+            -t $REGISTRY/docman-worker:$TAG \
+            -t $REGISTRY/docman-worker:latest \
+            .
+          docker push $REGISTRY/docman-worker:$TAG
+          docker push $REGISTRY/docman-worker:latest
+
+      # =========================
+      # =========================
+      - name: Build & Push Frontend
+        run: |
+          docker build -f Frontend/docman/Dockerfile \
+            -t $REGISTRY/docman-frontend:$TAG \
+            -t $REGISTRY/docman-frontend:latest \
+            Frontend/docman
+          docker push $REGISTRY/docman-frontend:$TAG
+          docker push $REGISTRY/docman-frontend:latest
