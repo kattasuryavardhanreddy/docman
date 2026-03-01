@@ -23,6 +23,7 @@ public class AuthController : ControllerBase
 
     public AuthController(AppDbContext context, IPasswordHasher<User> hasher, IJwtService jwtService)
     {
+        // test
         _context = context;
         _hasher = hasher;
         _jwtService = jwtService;
