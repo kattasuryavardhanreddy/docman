@@ -14,7 +14,7 @@ export default function RootLayout({ children }) {
   return (
     <html lang="en">
       <body className={inter.className}>
-        <nav className="bg-yellow-900 text-white p-4 shadow-md">
+        <nav className="bg-slate-900 text-white p-4 shadow-md">
           <div className="max-w-7xl mx-auto flex justify-between items-center">
             <Link href="/documents" className="text-xl font-bold tracking-tight">
               DocPortal

@@ -28,8 +28,9 @@ export async function registerAction(formData) {
     //   maxAge: data.expiresInSeconds,
     // });
     // raise an alert to say that registration is not allowed for now
-    return { error: "Registration is not allowed at this time." };
+    throw new Error("Registration is not allowed for now");
   } catch (err) {
+    console.error("Registration error:", err);
     return { error: "Registration service error" };
   }
 }

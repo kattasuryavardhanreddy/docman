@@ -1,4 +1,4 @@
-name: Build and Push Images to ACR
+name: Build, Push and Deploy to Azure Container Apps
 
 on:
   push:
@@ -13,15 +13,17 @@ env:
   ACR_NAME: ${{ secrets.ACR_NAME }}
   REGISTRY: ${{ secrets.ACR_NAME }}.azurecr.io
   TAG: ${{ github.sha }}
+  RESOURCE_GROUP: docman-rg   
 
 jobs:
-  build:
+  build-and-deploy:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
+      #  Login to Azure using OIDC
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -29,10 +31,12 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
+      #  Login to ACR
       - name: Login to ACR
         run: az acr login --name $ACR_NAME
 
       # =========================
+      # Build & Push API
       # =========================
       - name: Build & Push DocMan.Api
         run: |
@@ -44,6 +48,7 @@ jobs:
           docker push $REGISTRY/docman-api:latest
 
       # =========================
+      # Build & Push Worker
       # =========================
       - name: Build & Push DocMan.Worker
         run: |
@@ -55,6 +60,7 @@ jobs:
           docker push $REGISTRY/docman-worker:latest
 
       # =========================
+      # Build & Push Frontend
       # =========================
       - name: Build & Push Frontend
         run: |
@@ -64,3 +70,33 @@ jobs:
             Frontend/docman
           docker push $REGISTRY/docman-frontend:$TAG
           docker push $REGISTRY/docman-frontend:latest
+
+      # =========================
+      # Deploy API
+      # =========================
+      - name: Deploy DocMan.Api
+        run: |
+          az containerapp update \
+            --name docman-api \
+            --resource-group $RESOURCE_GROUP \
+            --image $REGISTRY/docman-api:$TAG
+
+      # =========================
+      # Deploy Worker
+      # =========================
+      - name: Deploy DocMan.Worker
+        run: |
+          az containerapp update \
+            --name docman-worker \
+            --resource-group $RESOURCE_GROUP \
+            --image $REGISTRY/docman-worker:$TAG
+
+      # =========================
+      # Deploy Frontend
+      # =========================
+      - name: Deploy Frontend
+        run: |
+          az containerapp update \
+            --name docman-ui \
+            --resource-group $RESOURCE_GROUP \
+            --image $REGISTRY/docman-frontend:$TAG
