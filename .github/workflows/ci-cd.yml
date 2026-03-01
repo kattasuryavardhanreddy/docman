@@ -5,6 +5,10 @@ on:
     branches:
       - main
 
+permissions:
+  id-token: write
+  contents: read
+
 env:
   ACR_NAME: ${{ secrets.ACR_NAME }}
   REGISTRY: ${{ secrets.ACR_NAME }}.azurecr.io
