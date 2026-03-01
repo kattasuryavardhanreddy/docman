@@ -7,28 +7,28 @@ export async function registerAction(formData) {
   const password = formData.get("password");
 
   try {
-    const response = await fetch(buildApiUrl("/api/v1/auth/register"), {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, password }),
-    });
+    // const response = await fetch(buildApiUrl("/api/v1/auth/register"), {
+    //   method: "POST",
+    //   headers: { "Content-Type": "application/json" },
+    //   body: JSON.stringify({ email, password }),
+    // });
 
-    const data = await response.json();
+    // const data = await response.json();
 
-    if (!response.ok) {
-      return { error: data.message || "Registration failed" };
-    }
+    // if (!response.ok) {
+    //   return { error: data.message || "Registration failed" };
+    // }
 
-    // FIX: Await the cookies() call
-    const cookieStore = await cookies();
-    cookieStore.set("docman_token", data.accessToken, {
-      httpOnly: true,
-      sameSite: "lax",
-      path: "/",
-      maxAge: data.expiresInSeconds,
-    });
-
-    return { success: true };
+    // // FIX: Await the cookies() call
+    // const cookieStore = await cookies();
+    // cookieStore.set("docman_token", data.accessToken, {
+    //   httpOnly: true,
+    //   sameSite: "lax",
+    //   path: "/",
+    //   maxAge: data.expiresInSeconds,
+    // });
+    // raise an alert to say that registration is not allowed for now
+    return { error: "Registration is not allowed at this time." };
   } catch (err) {
     return { error: "Registration service error" };
   }
