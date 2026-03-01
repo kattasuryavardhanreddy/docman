@@ -1,0 +1,136 @@
+trigger:
+  branches:
+    include:
+      - main
+
+pr: none
+
+pool:
+  vmImage: ubuntu-latest
+
+variables:
+  buildConfiguration: Release
+  dotnetVersion: 9.0.x
+  nodeVersion: 22.x
+  # Replace with the Docker registry service connection that targets your ACR.
+  dockerRegistryServiceConnection: docman-acr-service-connection
+  # Frontend is the default image target. For DocMan.Api or DocMan.Worker,
+  # update the repository and Dockerfile path, and set buildContext to ".".
+  imageRepository: docman-ui
+  dockerfilePath: Frontend/docman/Dockerfile
+  buildContext: Frontend/docman
+  frontendWorkingDirectory: Frontend/docman
+  # Override this in the pipeline/variable group for non-local environments.
+  frontendApiBaseUrl: http://localhost:5190
+
+stages:
+  - stage: Validate
+    displayName: Validate
+    jobs:
+      - job: BuildAndTest
+        displayName: Build and test
+        steps:
+          - checkout: self
+            clean: true
+
+          - task: UseDotNet@2
+            displayName: Install .NET SDK
+            inputs:
+              packageType: sdk
+              version: $(dotnetVersion)
+
+          - task: DotNetCoreCLI@2
+            displayName: Restore .NET solution
+            inputs:
+              command: restore
+              projects: DocMan.sln
+
+          - task: DotNetCoreCLI@2
+            displayName: Build .NET solution
+            inputs:
+              command: build
+              projects: DocMan.sln
+              arguments: --configuration $(buildConfiguration) --no-restore
+
+          - task: DotNetCoreCLI@2
+            displayName: Run backend tests
+            inputs:
+              command: test
+              projects: DocMan.Tests/DocMan.Tests.csproj
+              arguments: --configuration $(buildConfiguration) --no-build --logger trx
+              publishTestResults: false
+
+          - task: PublishTestResults@2
+            displayName: Publish test results
+            condition: succeededOrFailed()
+            inputs:
+              testResultsFormat: VSTest
+              testResultsFiles: '**/*.trx'
+              failTaskOnFailedTests: true
+              testRunTitle: DocMan backend tests
+
+          - task: NodeTool@0
+            displayName: Install Node.js
+            inputs:
+              versionSpec: $(nodeVersion)
+
+          - script: npm ci
+            displayName: Install frontend dependencies
+            workingDirectory: $(frontendWorkingDirectory)
+
+          - script: npm run lint
+            displayName: Lint frontend
+            workingDirectory: $(frontendWorkingDirectory)
+
+          - script: npm run build
+            displayName: Build frontend
+            workingDirectory: $(frontendWorkingDirectory)
+            env:
+              DOCMAN_API_BASE_URL: $(frontendApiBaseUrl)
+
+  - stage: BuildAndPush
+    displayName: Build and push image
+    dependsOn: Validate
+    condition: succeeded()
+    jobs:
+      - job: PushImage
+        displayName: Push Docker image to ACR
+        steps:
+          - checkout: self
+            clean: true
+
+          - task: Docker@2
+            displayName: Log in to ACR
+            inputs:
+              command: login
+              containerRegistry: $(dockerRegistryServiceConnection)
+
+          - task: Docker@2
+            displayName: Build Docker image
+            inputs:
+              command: build
+              containerRegistry: $(dockerRegistryServiceConnection)
+              repository: $(imageRepository)
+              dockerfile: $(dockerfilePath)
+              buildContext: $(buildContext)
+              arguments: --build-arg DOCMAN_API_BASE_URL=$(frontendApiBaseUrl)
+              tags: |
+                $(Build.BuildId)
+                latest
+
+          - task: Docker@2
+            displayName: Push Docker image
+            inputs:
+              command: push
+              containerRegistry: $(dockerRegistryServiceConnection)
+              repository: $(imageRepository)
+              tags: |
+                $(Build.BuildId)
+                latest
+
+          - task: Docker@2
+            displayName: Log out of ACR
+            condition: always()
+            inputs:
+              command: logout
+              containerRegistry: $(dockerRegistryServiceConnection)
