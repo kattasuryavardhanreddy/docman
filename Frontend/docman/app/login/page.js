@@ -2,7 +2,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { loginAction } from "./actions";
-import Link from "next/link";
 
 export default function LoginPage() {
   const [error, setError] = useState("");
@@ -50,7 +49,7 @@ export default function LoginPage() {
           </button>
         </form>
         <p className="mt-6 text-center text-sm text-slate-600">
-          New here? <Link href="/register" className="text-blue-600 hover:underline">Create an account</Link>
+          New registrations are currently unavailable.
         </p>
       </div>
     </div>
