@@ -73,7 +73,7 @@ export default function UploadPage() {
     <div className="mx-auto max-w-6xl px-6 py-10">
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
+          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-red-600">
             Repository
           </p>
           <h1 className="mt-2 text-3xl font-bold text-slate-900">Upload PDF</h1>
@@ -151,8 +151,8 @@ export default function UploadPage() {
                 <span
                   className={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${
                     selectedFile
-                      ? "bg-blue-100 text-blue-700"
-                      : "bg-slate-200 text-slate-600"
+                      ? "border border-blue-200 bg-blue-100 text-blue-700"
+                      : "border border-red-200 bg-white text-slate-700"
                   }`}
                 >
                   {selectedFile ? "Ready" : "Waiting"}
@@ -167,7 +167,7 @@ export default function UploadPage() {
             ) : null}
 
             {successMessage ? (
-              <div className="mt-6 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-700">
+              <div className="mt-6 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-700">
                 {successMessage}
               </div>
             ) : null}
@@ -229,7 +229,7 @@ export default function UploadPage() {
                   <p className="text-xs font-semibold uppercase tracking-[0.2em] text-slate-400">
                     Status
                   </p>
-                  <span className="mt-2 inline-flex rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-700">
+                  <span className="mt-2 inline-flex rounded-full border border-red-200 bg-white px-3 py-1 text-xs font-semibold text-slate-700">
                     {resultData.status || "Pending"}
                   </span>
                 </div>

@@ -3,9 +3,9 @@ import { logoutAction } from "./logout-action";
 
 export default function LogoutButton() {
   return (
-    <button 
+    <button
       onClick={async () => await logoutAction()}
-      className="bg-slate-700 hover:bg-slate-600 px-4 py-2 rounded transition-colors text-sm font-medium"
+      className="rounded bg-red-600 px-4 py-2 text-sm font-medium transition-colors hover:bg-red-700"
     >
       Logout
     </button>

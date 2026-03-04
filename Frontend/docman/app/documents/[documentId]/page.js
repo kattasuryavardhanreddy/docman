@@ -34,14 +34,14 @@ function formatDate(value) {
 
 function getStatusClasses(status) {
   if (status === "Processed") {
-    return "bg-emerald-100 text-emerald-700";
+    return "border border-blue-200 bg-blue-100 text-blue-700";
   }
 
   if (status === "Failed") {
-    return "bg-red-100 text-red-700";
+    return "border border-red-200 bg-red-100 text-red-700";
   }
 
-  return "bg-amber-100 text-amber-700";
+  return "border border-red-200 bg-white text-slate-700";
 }
 
 function getStatusCopy(status) {
@@ -155,7 +155,7 @@ export default function DocumentDetailPage({ params }) {
     <div className="mx-auto max-w-6xl px-6 py-10">
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
+          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-red-600">
             Repository
           </p>
           <h1 className="mt-2 break-all text-3xl font-bold text-slate-900">

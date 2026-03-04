@@ -32,9 +32,15 @@ function formatDate(value) {
 }
 
 function getStatusClasses(status) {
-  return status === "Processed"
-    ? "bg-emerald-100 text-emerald-700"
-    : "bg-amber-100 text-amber-700";
+  if (status === "Processed") {
+    return "border border-blue-200 bg-blue-100 text-blue-700";
+  }
+
+  if (status === "Failed") {
+    return "border border-red-200 bg-red-100 text-red-700";
+  }
+
+  return "border border-red-200 bg-white text-slate-700";
 }
 
 export default async function DocumentsPage() {
@@ -46,7 +52,7 @@ export default async function DocumentsPage() {
     <div className="mx-auto max-w-6xl px-6 py-10">
       <div className="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-slate-400">
+          <p className="text-xs font-semibold uppercase tracking-[0.3em] text-red-600">
             Repository
           </p>
           <h1 className="mt-2 text-3xl font-bold text-slate-900">Documents</h1>
@@ -112,7 +118,7 @@ export default async function DocumentsPage() {
                   <td className="px-6 py-4">
                     <Link
                       href={`/documents/${document.documentId}`}
-                      className="font-semibold text-blue-600 transition-colors hover:text-blue-700"
+                      className="font-semibold text-blue-600 transition-colors hover:text-red-600"
                     >
                       View
                     </Link>
