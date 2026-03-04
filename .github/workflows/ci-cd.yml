@@ -1,29 +1,30 @@
-name: Build, Push and Deploy to Azure Container Apps
+name: Build, Push and Deploy to Azure
 
 on:
   push:
-    branches:
-      - main
+    branches: [ main ]
 
 permissions:
   id-token: write
   contents: read
 
 env:
-  ACR_NAME: ${{ secrets.ACR_NAME }}
-  REGISTRY: ${{ secrets.ACR_NAME }}.azurecr.io
+  ACR_NAME: "docmanacr123tf"
+  REGISTRY: "docmanacr123tf.azurecr.io"
   TAG: ${{ github.sha }}
-  RESOURCE_GROUP: docman-rg   
+  # Terraform OIDC Environment Variables
+  ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+  ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
+  ARM_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+  ARM_USE_OIDC: true
 
 jobs:
-  build-and-deploy:
+  infrastructure-and-apps:
     runs-on: ubuntu-latest
-
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
 
-      #  Login to Azure using OIDC
       - name: Login to Azure
         uses: azure/login@v2
         with:
@@ -31,72 +32,43 @@ jobs:
           tenant-id: ${{ secrets.AZURE_TENANT_ID }}
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
-      #  Login to ACR
+      - name: Terraform Init
+        run: terraform init
+        working-directory: ./terraform
+
+      # Bootstrap Stage: ACR must exist before Docker can push to it
+      - name: Terraform Bootstrap (ACR)
+        run: |
+          terraform apply -auto-approve \
+            -target=azurerm_resource_group.rg \
+            -target=azurerm_container_registry.acr \
+            -target=azurerm_user_assigned_identity.apps_identity \
+            -target=azurerm_role_assignment.acr_pull
+        working-directory: ./terraform
+
       - name: Login to ACR
         run: az acr login --name $ACR_NAME
 
-      # =========================
-      # Build & Push API
-      # =========================
-      - name: Build & Push DocMan.Api
+      - name: Build & Push Images
         run: |
-          docker build -f DocMan.Api/Dockerfile \
-            -t $REGISTRY/docman-api:$TAG \
-            -t $REGISTRY/docman-api:latest \
-            .
+          docker build -f DocMan.Api/Dockerfile -t $REGISTRY/docman-api:$TAG -t $REGISTRY/docman-api:latest .
           docker push $REGISTRY/docman-api:$TAG
           docker push $REGISTRY/docman-api:latest
 
-      # =========================
-      # Build & Push Worker
-      # =========================
-      - name: Build & Push DocMan.Worker
-        run: |
-          docker build -f DocMan.Worker/Dockerfile \
-            -t $REGISTRY/docman-worker:$TAG \
-            -t $REGISTRY/docman-worker:latest \
-            .
+          docker build -f DocMan.Worker/Dockerfile -t $REGISTRY/docman-worker:$TAG -t $REGISTRY/docman-worker:latest .
           docker push $REGISTRY/docman-worker:$TAG
           docker push $REGISTRY/docman-worker:latest
 
-      # =========================
-      # Build & Push Frontend
-      # =========================
-      - name: Build & Push Frontend
-        run: |
-          docker build -f Frontend/docman/Dockerfile \
-            -t $REGISTRY/docman-frontend:$TAG \
-            -t $REGISTRY/docman-frontend:latest \
-            Frontend/docman
+          docker build -f Frontend/docman/Dockerfile -t $REGISTRY/docman-frontend:$TAG -t $REGISTRY/docman-frontend:latest Frontend/docman
           docker push $REGISTRY/docman-frontend:$TAG
           docker push $REGISTRY/docman-frontend:latest
 
-      # =========================
-      # Deploy API
-      # =========================
-      - name: Deploy DocMan.Api
-        run: |
-          az containerapp update \
-            --name docman-api \
-            --resource-group $RESOURCE_GROUP \
-            --image $REGISTRY/docman-api:$TAG
+      # NEW: Generate a Plan so you can see changes in the logs
+      - name: Terraform Plan
+        run: terraform plan -var="image_tag=$TAG" -out=tfplan
+        working-directory: ./terraform
 
-      # =========================
-      # Deploy Worker
-      # =========================
-      - name: Deploy DocMan.Worker
-        run: |
-          az containerapp update \
-            --name docman-worker \
-            --resource-group $RESOURCE_GROUP \
-            --image $REGISTRY/docman-worker:$TAG
-
-      # =========================
-      # Deploy Frontend
-      # =========================
-      - name: Deploy Frontend
-        run: |
-          az containerapp update \
-            --name docman-ui \
-            --resource-group $RESOURCE_GROUP \
-            --image $REGISTRY/docman-frontend:$TAG
+      # Final Apply Stage
+      - name: Terraform Apply (Full)
+        run: terraform apply -auto-approve tfplan
+        working-directory: ./terraform

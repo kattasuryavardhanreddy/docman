@@ -1,91 +1,72 @@
-#################################
-# Resource Group
-#################################
-resource "azurerm_resource_group" "main" {
+resource "azurerm_resource_group" "rg" {
   name     = var.resource_group_name
-  location = var.location
+  location = var.location_primary
 }
 
-
-#################################
-# Container Registry
-#################################
 resource "azurerm_container_registry" "acr" {
-  name                = var.acr_name
-  resource_group_name = azurerm_resource_group.main.name
-  location            = azurerm_resource_group.main.location
+  name                = "docmanacr123tf"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = var.location_primary
   sku                 = "Basic"
   admin_enabled       = false
 }
 
-
-#################################
-# SQL Server & Database
-#################################
-resource "azurerm_mssql_server" "sql" {
-  name                         = var.sql_server_name
-  resource_group_name          = azurerm_resource_group.main.name
-  location                     = azurerm_resource_group.main.location
-  version                      = "12.0"
-  administrator_login          = var.sql_admin_username
-  administrator_login_password = var.sql_admin_password
-}
-
-resource "azurerm_mssql_database" "db" {
-  name      = var.sql_database_name
-  server_id = azurerm_mssql_server.sql.id
-  sku_name  = "Basic"
-}
-
-
-#################################
-# Storage
-#################################
 resource "azurerm_storage_account" "storage" {
-  name                     = var.storage_account_name
-  resource_group_name      = azurerm_resource_group.main.name
-  location                 = azurerm_resource_group.main.location
+  name                     = "docmanstorage2026tf"
+  resource_group_name      = azurerm_resource_group.rg.name
+  location                 = var.location_primary
   account_tier             = "Standard"
   account_replication_type = "LRS"
 }
 
-resource "azurerm_storage_container" "documents" {
-  name                 = var.storage_container_name
-  storage_account_id   = azurerm_storage_account.storage.id
-  container_access_type = "private"
+resource "azurerm_mssql_server" "sql" {
+  name                         = "docman-sql-servertf"
+  resource_group_name          = azurerm_resource_group.rg.name
+  location                     = var.location_primary
+  version                      = "12.0"
+  administrator_login          = "docmanadmin"
+  administrator_login_password = var.sql_admin_password
+  public_network_access_enabled = true
 }
 
-
-#################################
-# Container Apps
-#################################
-resource "azurerm_container_app_environment" "env" {
-  name                = var.containerapps_environment_name
-  location            = azurerm_resource_group.main.location
-  resource_group_name = azurerm_resource_group.main.name
+# Allow Container Apps to reach the DB
+resource "azurerm_mssql_firewall_rule" "allow_azure_services" {
+  name             = "AllowAzureServices"
+  server_id        = azurerm_mssql_server.sql.id
+  start_ip_address = "0.0.0.0"
+  end_ip_address   = "0.0.0.0"
 }
 
-resource "azurerm_container_app" "test_app" {
-  name                         = var.container_app_name
-  container_app_environment_id = azurerm_container_app_environment.env.id
-  resource_group_name          = azurerm_resource_group.main.name
-  revision_mode                = "Single"
+resource "azurerm_mssql_database" "db" {
+  name      = "DocManDbtf"
+  server_id = azurerm_mssql_server.sql.id
+  sku_name  = "Basic"
+}
 
-  template {
-    container {
-      name   = "nginx"
-      image = var.container_image
-      cpu    = 0.5
-      memory = "1Gi"
-    }
-  }
+resource "azurerm_redis_enterprise_cluster" "redis" {
+  name                = "docman-redistf"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = var.location_primary
+  sku_name            = "Enterprise_E10-2"
+}
 
-  ingress {
-    external_enabled = true
-    target_port      = 80
-    traffic_weight {
-      percentage      = 100
-      latest_revision = true
-    }
-  }
+# Enterprise clusters require an explicit database resource
+resource "azurerm_redis_enterprise_database" "redis_db" {
+  name              = "default"
+  cluster_id        = azurerm_redis_enterprise_cluster.redis.id
+  client_protocol   = "Encrypted"
+  clustering_policy = "OSSCluster"
+  port              = 10000
+}
+
+resource "azurerm_user_assigned_identity" "apps_identity" {
+  name                = "id-docman-appstf"
+  resource_group_name = azurerm_resource_group.rg.name
+  location            = var.location_primary
+}
+
+resource "azurerm_role_assignment" "acr_pull" {
+  scope                = azurerm_container_registry.acr.id
+  role_definition_name = "AcrPull"
+  principal_id         = azurerm_user_assigned_identity.apps_identity.principal_id
 }
