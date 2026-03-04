@@ -70,3 +70,16 @@ artifacts/
 # Generated files
 Generated/
 wwwroot/dist/
+
+
+# Terraform
+.terraform/
+*.tfstate
+*.tfstate.*
+crash.log
+
+# Local variable overrides
+*.tfvars
+
+# Sensitive override files
+*.auto.tfvars
