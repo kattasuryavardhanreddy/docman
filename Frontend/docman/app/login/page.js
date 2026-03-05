@@ -1,7 +1,9 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { loginAction } from "./actions";
+import { REGISTRATION_ENABLED } from "../register/registration-status";
 
 export default function LoginPage() {
   const [error, setError] = useState("");
@@ -49,7 +51,16 @@ export default function LoginPage() {
           </button>
         </form>
         <p className="mt-6 text-center text-sm text-slate-600">
-          New registrations are currently unavailable.
+          {REGISTRATION_ENABLED ? (
+            <>
+              New here?{" "}
+              <Link href="/register" className="text-blue-600 hover:underline">
+                Create an account
+              </Link>
+            </>
+          ) : (
+            "New registrations are currently unavailable."
+          )}
         </p>
       </div>
     </div>
