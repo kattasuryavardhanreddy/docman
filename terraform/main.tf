@@ -47,7 +47,7 @@ resource "azurerm_redis_enterprise_cluster" "redis" {
   name                = "docman-redistf"
   resource_group_name = azurerm_resource_group.rg.name
   location            = var.location_primary
-  sku_name            = "Enterprise_E10-2"
+  sku_name            = "Enterprise_E5-2"
 }
 
 # Enterprise clusters require an explicit database resource
