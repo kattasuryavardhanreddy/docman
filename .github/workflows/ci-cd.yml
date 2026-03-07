@@ -9,8 +9,8 @@ permissions:
   contents: read
 
 env:
-  ACR_NAME: "docmanacr123tf"
-  REGISTRY: "docmanacr123tf.azurecr.io"
+  ACR_NAME: "docmanacrprodtf"
+  REGISTRY: "docmanacrprodtf.azurecr.io"
   TAG: ${{ github.sha }}
   # Terraform OIDC Environment Variables
   ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}

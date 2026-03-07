@@ -4,7 +4,7 @@ resource "azurerm_resource_group" "rg" {
 }
 
 resource "azurerm_container_registry" "acr" {
-  name                = "docmanacr123tf"
+  name                = "docmanacrprodtf"
   resource_group_name = azurerm_resource_group.rg.name
   location            = var.location_primary
   sku                 = "Basic"
