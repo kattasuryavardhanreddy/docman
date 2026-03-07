@@ -1,5 +1,5 @@
-variable "location_primary" { default = "centralindia" }
-variable "location_secondary" { default = "southindia" }
+variable "location_primary" { default = "eastus" }
+variable "location_secondary" { default = "eastus" }
 variable "resource_group_name" { default = "docman-rg-tf" }
 
 # Added to support CI/CD updates
