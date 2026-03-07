@@ -9,8 +9,6 @@ permissions:
   contents: read
 
 env:
-  ACR_NAME: "docmanacrprodtf"
-  REGISTRY: "docmanacrprodtf.azurecr.io"
   TAG: ${{ github.sha }}
   # Terraform OIDC Environment Variables
   ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
@@ -54,6 +52,12 @@ jobs:
             -target=azurerm_container_registry.acr \
             -target=azurerm_user_assigned_identity.apps_identity \
             -target=azurerm_role_assignment.acr_pull
+        working-directory: ./terraform
+
+      - name: Resolve ACR details from Terraform outputs
+        run: |
+          echo "ACR_NAME=$(terraform output -raw acr_name)" >> "$GITHUB_ENV"
+          echo "REGISTRY=$(terraform output -raw acr_login_server)" >> "$GITHUB_ENV"
         working-directory: ./terraform
 
       - name: Login to ACR

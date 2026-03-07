@@ -6,12 +6,21 @@ resource "azurerm_resource_group" "rg" {
 data "azurerm_client_config" "current" {}
 
 locals {
-  # Azure SQL server names are globally unique; derive a stable suffix per subscription/RG.
-  sql_server_name = var.sql_server_name_override != null ? lower(var.sql_server_name_override) : lower("docman-sql-servertf-${substr(md5("${data.azurerm_client_config.current.subscription_id}-${var.resource_group_name}"), 0, 10)}")
+  # Use a stable seed so names are deterministic across reruns for the same subscription + RG.
+  name_seed = "${data.azurerm_client_config.current.subscription_id}-${var.resource_group_name}"
+
+  # ACR: lowercase alphanumeric, 5-50 chars.
+  acr_name = var.acr_name_override != null ? lower(var.acr_name_override) : "docmanacr${substr(md5("${local.name_seed}-acr"), 0, 16)}"
+
+  # Storage Account: lowercase alphanumeric, 3-24 chars.
+  storage_account_name = var.storage_account_name_override != null ? lower(var.storage_account_name_override) : "docmanst${substr(md5("${local.name_seed}-storage"), 0, 16)}"
+
+  # Azure SQL server names are globally unique.
+  sql_server_name = var.sql_server_name_override != null ? lower(var.sql_server_name_override) : "docman-sql-servertf-${substr(md5("${local.name_seed}-sql"), 0, 10)}"
 }
 
 resource "azurerm_container_registry" "acr" {
-  name                = "docmanacrprodtf"
+  name                = local.acr_name
   resource_group_name = azurerm_resource_group.rg.name
   location            = var.location_primary
   sku                 = "Basic"
@@ -19,7 +28,7 @@ resource "azurerm_container_registry" "acr" {
 }
 
 resource "azurerm_storage_account" "storage" {
-  name                     = "docmanstorage2026tf"
+  name                     = local.storage_account_name
   resource_group_name      = azurerm_resource_group.rg.name
   location                 = var.location_primary
   account_tier             = "Standard"
