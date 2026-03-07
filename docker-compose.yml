@@ -7,11 +7,6 @@ services:
     ports:
       - "1433:1433"
 
-  redis:
-    image: redis:alpine
-    ports:
-      - "6379:6379"
-
   azurite:
     image: mcr.microsoft.com/azure-storage/azurite
     command: azurite-blob --blobHost 0.0.0.0 --skipApiVersionCheck
@@ -26,7 +21,6 @@ services:
       - "5190:5000"
     environment:
       - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=DocManDb;User Id=sa;Password=YourStrong!Pass123;TrustServerCertificate=True;
-      - Redis__ConnectionString=redis:6379
       - Blob__ConnectionString=DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;
       - Blob__ContainerName=documents
       - Jwt__Key=KatT@$$UryA^@RdhaNReddy#18@99544Vi6a2InnOv@T>
@@ -34,7 +28,6 @@ services:
       - Jwt__Audience=docman-client
     depends_on:
       - sqlserver
-      - redis
       - azurite
 
   docman-worker:
@@ -43,12 +36,10 @@ services:
       dockerfile: DocMan.Worker/Dockerfile
     environment:
       - ConnectionStrings__DefaultConnection=Server=sqlserver;Database=DocManDb;User Id=sa;Password=YourStrong!Pass123;TrustServerCertificate=True;
-      - Redis__ConnectionString=redis:6379
       - Blob__ConnectionString=DefaultEndpointsProtocol=http;AccountName=devstoreaccount1;AccountKey=Eby8vdM02xNOcqFlqUwJPLlmEtlCDXJ1OUzFT50uSRZ6IFsuFq2UVErCz4I6tq/K1SZFPTOtr/KBHBeksoGMGw==;BlobEndpoint=http://azurite:10000/devstoreaccount1;
       - Blob__ContainerName=documents
     depends_on:
       - sqlserver
-      - redis
       - azurite
 
   docman-ui:

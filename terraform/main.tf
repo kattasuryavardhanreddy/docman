@@ -43,22 +43,6 @@ resource "azurerm_mssql_database" "db" {
   sku_name  = "Basic"
 }
 
-resource "azurerm_redis_enterprise_cluster" "redis" {
-  name                = "docman-redistf"
-  resource_group_name = azurerm_resource_group.rg.name
-  location            = var.location_primary
-  sku_name            = "Enterprise_E5-2"
-}
-
-# Enterprise clusters require an explicit database resource
-resource "azurerm_redis_enterprise_database" "redis_db" {
-  name              = "default"
-  cluster_id        = azurerm_redis_enterprise_cluster.redis.id
-  client_protocol   = "Encrypted"
-  clustering_policy = "OSSCluster"
-  port              = 10000
-}
-
 resource "azurerm_user_assigned_identity" "apps_identity" {
   name                = "id-docman-appstf"
   resource_group_name = azurerm_resource_group.rg.name

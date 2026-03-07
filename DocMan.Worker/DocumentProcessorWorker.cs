@@ -44,7 +44,6 @@ public class DocumentProcessorWorker : BackgroundService
         using var scope = _serviceProvider.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
         var blob = scope.ServiceProvider.GetRequiredService<IBlobStorageService>();
-        var cache = scope.ServiceProvider.GetRequiredService<ICacheService>();
 
         var threshold = DateTime.UtcNow.Subtract(StuckThreshold);
 
@@ -60,7 +59,7 @@ public class DocumentProcessorWorker : BackgroundService
             if (await TryClaimDocumentAsync(db, candidate.DocumentId, ct))
             {
                 _logger.LogInformation("Claimed document {DocumentId} for user {UserId}", candidate.DocumentId, candidate.OwnerUserId);
-                await ProcessDocumentAsync(db, blob, cache, candidate.DocumentId, candidate.OwnerUserId, ct);
+                await ProcessDocumentAsync(db, blob, candidate.DocumentId, ct);
             }
         }
     }
@@ -78,7 +77,7 @@ public class DocumentProcessorWorker : BackgroundService
         return rows == 1;
     }
 
-    private async Task ProcessDocumentAsync(AppDbContext db, IBlobStorageService blob, ICacheService cache, Guid docId, Guid userId, CancellationToken ct)
+    private async Task ProcessDocumentAsync(AppDbContext db, IBlobStorageService blob, Guid docId, CancellationToken ct)
     {
         var doc = await db.Documents.FirstAsync(d => d.DocumentId == docId, ct);
 
@@ -104,9 +103,5 @@ public class DocumentProcessorWorker : BackgroundService
         }
 
         await db.SaveChangesAsync(ct);
-
-        // Invalidate Cache
-        await cache.RemoveAsync($"doc:{docId}:meta");
-        await cache.IncrementAsync($"user:{userId}:docs:list:ver");
     }
 }

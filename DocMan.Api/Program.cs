@@ -23,7 +23,6 @@ JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
 
 var builder = WebApplication.CreateBuilder(args);
 
-builder.Services.Configure<RedisOptions>(builder.Configuration.GetSection("Redis"));
 builder.Services.Configure<BlobOptions>(builder.Configuration.GetSection("Blob"));
 
 builder.Services.AddControllers()
@@ -52,7 +51,6 @@ builder.Services.AddControllers()
         };
     });
 
-builder.Services.AddSingleton<ICacheService, RedisCacheService>();
 builder.Services.AddScoped<IBlobStorageService, BlobStorageService>();
 builder.Services.AddScoped<IDocumentService, DocumentService>();
 

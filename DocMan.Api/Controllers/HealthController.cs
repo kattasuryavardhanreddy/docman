@@ -11,13 +11,11 @@ namespace DocMan.Api.Controllers;
 public class HealthController : ControllerBase
 {
     private readonly AppDbContext _context;
-    private readonly ICacheService _cache;
     private readonly IBlobStorageService _blob;
 
-    public HealthController(AppDbContext context, ICacheService cache, IBlobStorageService blob)
+    public HealthController(AppDbContext context, IBlobStorageService blob)
     {
         _context = context;
-        _cache = cache;
         _blob = blob;
     }
 
@@ -30,16 +28,13 @@ public class HealthController : ControllerBase
         var sqlOk = await _context.Database.CanConnectAsync();
         if (!sqlOk) return DependencyError("sql");
 
-        var redisOk = await _cache.IsReadyAsync();
-        if (!redisOk) return DependencyError("redis");
-
         var blobOk = await _blob.IsReadyAsync();
         if (!blobOk) return DependencyError("blob");
 
         return Ok(new
         {
             status = "ok",
-            dependencies = new { sql = "ok", redis = "ok", blob = "ok" }
+            dependencies = new { sql = "ok", blob = "ok" }
         });
     }
 

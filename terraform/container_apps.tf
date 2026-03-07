@@ -60,11 +60,6 @@ resource "azurerm_container_app" "api" {
       }
 
       env {
-        name  = "Redis__ConnectionString"
-        value = "${azurerm_redis_enterprise_cluster.redis.hostname}:10000,password=${azurerm_redis_enterprise_database.redis_db.primary_access_key},ssl=True,abortConnect=False"
-      }
-
-      env {
         name  = "Blob__ConnectionString"
         value = azurerm_storage_account.storage.primary_connection_string
       }
@@ -116,11 +111,6 @@ resource "azurerm_container_app" "ui" {
       }
 
       env {
-        name  = "Redis__ConnectionString"
-        value = "${azurerm_redis_enterprise_cluster.redis.hostname}:10000,password=${azurerm_redis_enterprise_database.redis_db.primary_access_key},ssl=True,abortConnect=False"
-      }
-
-      env {
         name  = "Blob__ConnectionString"
         value = azurerm_storage_account.storage.primary_connection_string
       }
@@ -167,11 +157,6 @@ resource "azurerm_container_app" "worker" {
       env {
         name  = "ConnectionStrings__DefaultConnection"
         value = "Server=tcp:${azurerm_mssql_server.sql.fully_qualified_domain_name},1433;Initial Catalog=${azurerm_mssql_database.db.name};User ID=docmanadmin;Password=${var.sql_admin_password};Encrypt=True;"
-      }
-
-      env {
-        name  = "Redis__ConnectionString"
-        value = "${azurerm_redis_enterprise_cluster.redis.hostname}:10000,password=${azurerm_redis_enterprise_database.redis_db.primary_access_key},ssl=True,abortConnect=False"
       }
 
       env {
