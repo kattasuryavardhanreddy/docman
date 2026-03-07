@@ -4,6 +4,10 @@ on:
   push:
     branches: [ main ]
 
+concurrency:
+  group: terraform-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+
 permissions:
   id-token: write
   contents: read
@@ -92,7 +96,7 @@ jobs:
       # Bootstrap Stage: ACR must exist before Docker can push to it
       - name: Terraform Bootstrap (ACR)
         run: |
-          terraform apply -auto-approve \
+          terraform apply -lock-timeout=10m -auto-approve \
             -target=azurerm_resource_group.rg \
             -target=azurerm_container_registry.acr \
             -target=azurerm_user_assigned_identity.apps_identity \
@@ -124,10 +128,10 @@ jobs:
 
       # NEW: Generate a Plan so you can see changes in the logs
       - name: Terraform Plan
-        run: terraform plan -var="image_tag=$TAG" -out=tfplan
+        run: terraform plan -lock-timeout=10m -var="image_tag=$TAG" -out=tfplan
         working-directory: ./terraform
 
       # Final Apply Stage
       - name: Terraform Apply (Full)
-        run: terraform apply -auto-approve tfplan
+        run: terraform apply -lock-timeout=10m -auto-approve tfplan
         working-directory: ./terraform
