@@ -3,6 +3,13 @@ resource "azurerm_resource_group" "rg" {
   location = var.location_primary
 }
 
+data "azurerm_client_config" "current" {}
+
+locals {
+  # Azure SQL server names are globally unique; derive a stable suffix per subscription/RG.
+  sql_server_name = var.sql_server_name_override != null ? lower(var.sql_server_name_override) : lower("docman-sql-servertf-${substr(md5("${data.azurerm_client_config.current.subscription_id}-${var.resource_group_name}"), 0, 10)}")
+}
+
 resource "azurerm_container_registry" "acr" {
   name                = "docmanacrprodtf"
   resource_group_name = azurerm_resource_group.rg.name
@@ -20,12 +27,12 @@ resource "azurerm_storage_account" "storage" {
 }
 
 resource "azurerm_mssql_server" "sql" {
-  name                         = "docman-sql-servertf"
-  resource_group_name          = azurerm_resource_group.rg.name
-  location                     = var.location_primary
-  version                      = "12.0"
-  administrator_login          = "docmanadmin"
-  administrator_login_password = var.sql_admin_password
+  name                          = local.sql_server_name
+  resource_group_name           = azurerm_resource_group.rg.name
+  location                      = var.location_primary
+  version                       = "12.0"
+  administrator_login           = "docmanadmin"
+  administrator_login_password  = var.sql_admin_password
   public_network_access_enabled = true
 }
 

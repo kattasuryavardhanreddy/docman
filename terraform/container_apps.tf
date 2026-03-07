@@ -100,7 +100,7 @@ resource "azurerm_container_app" "ui" {
       image  = "${azurerm_container_registry.acr.login_server}/docman-frontend:${var.image_tag}"
       cpu    = 0.5
       memory = "1Gi"
-      
+
       env {
         name  = "DOCMAN_API_BASE_URL"
         value = "https://${azurerm_container_app.api.ingress[0].fqdn}"

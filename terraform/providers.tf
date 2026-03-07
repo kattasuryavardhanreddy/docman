@@ -11,7 +11,7 @@ terraform {
     storage_account_name = "docmantfstate1234"
     container_name       = "tfstate"
     key                  = "terraform.tfstate"
-    use_oidc             = true 
+    use_oidc             = true
   }
 }
 
