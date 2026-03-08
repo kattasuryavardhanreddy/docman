@@ -62,7 +62,6 @@ jobs:
       - name: Terraform Bootstrap (ACR)
         run: |
           terraform apply -no-color -input=false -lock-timeout=10m -auto-approve \
-            -target=azurerm_resource_group.rg \
             -target=azurerm_container_registry.acr \
             -target=azurerm_user_assigned_identity.apps_identity \
             -target=azurerm_role_assignment.acr_pull

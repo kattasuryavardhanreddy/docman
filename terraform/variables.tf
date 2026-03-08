@@ -1,5 +1,10 @@
-variable "location_primary" { default = "eastus" }
-variable "location_secondary" { default = "eastus" }
+variable "location_primary" {
+  type = string
+}
+
+variable "location_secondary" {
+  type = string
+}
 variable "resource_group_name" { default = "docman-rg-tf" }
 
 # Added to support CI/CD updates
