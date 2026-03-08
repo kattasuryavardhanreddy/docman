@@ -16,6 +16,7 @@ env:
   TAG: ${{ github.sha }}
   TFSTATE_STORAGE_ACCOUNT_NAME: ${{ secrets.TFSTATE_STORAGE_ACCOUNT_NAME }}
   TFSTATE_CONTAINER_NAME: ${{ secrets.TFSTATE_CONTAINER_NAME }}
+  TFSTATE_KEY: ${{ secrets.TFSTATE_KEY }}
   # Terraform OIDC Environment Variables
   ARM_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
   ARM_SUBSCRIPTION_ID: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
@@ -75,6 +76,22 @@ jobs:
 
           echo "TFSTATE_CONTAINER_NAME=$container_name" >> "$GITHUB_ENV"
 
+      - name: Generate backend state key
+        run: |
+          if [ -n "$TFSTATE_KEY" ]; then
+            state_key="$TFSTATE_KEY"
+          else
+            state_key="terraform.tfstate"
+          fi
+
+          state_key="$(echo "$state_key" | sed -E 's#^/+##; s#/+#/#g')"
+          if [ -z "$state_key" ]; then
+            echo "Resolved TFSTATE_KEY is empty."
+            exit 1
+          fi
+
+          echo "TFSTATE_KEY=$state_key" >> "$GITHUB_ENV"
+
       - name: Ensure backend container exists
         run: |
           az storage container create \
@@ -89,7 +106,7 @@ jobs:
             -backend-config="resource_group_name=tfstate-rg" \
             -backend-config="storage_account_name=$TFSTATE_STORAGE_ACCOUNT_NAME" \
             -backend-config="container_name=$TFSTATE_CONTAINER_NAME" \
-            -backend-config="key=terraform.tfstate" \
+            -backend-config="key=$TFSTATE_KEY" \
             -backend-config="use_oidc=true"
         working-directory: ./terraform
 
