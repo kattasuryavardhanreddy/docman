@@ -8,6 +8,7 @@ terraform {
 
   backend "azurerm" {
     resource_group_name  = "tfstate-rg"
+    key                  = "terraform.tfstate"
     use_oidc             = true
   }
 }

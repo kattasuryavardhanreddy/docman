@@ -14,24 +14,6 @@ variable "sql_admin_password" {
   default   = "Commvault!12"
 }
 
-variable "acr_name_override" {
-  type        = string
-  default     = null
-  description = "Optional explicit Azure Container Registry name. If null, Terraform derives a stable unique name."
-}
-
-variable "storage_account_name_override" {
-  type        = string
-  default     = null
-  description = "Optional explicit Storage Account name. If null, Terraform derives a stable unique name."
-}
-
-variable "sql_server_name_override" {
-  type        = string
-  default     = null
-  description = "Optional explicit Azure SQL server name. If null, Terraform derives a stable unique name."
-}
-
 variable "jwt_key" {
   type      = string
   sensitive = true

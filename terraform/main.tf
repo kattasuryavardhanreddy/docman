@@ -10,13 +10,13 @@ locals {
   name_seed = "${data.azurerm_client_config.current.subscription_id}-${var.resource_group_name}"
 
   # ACR: lowercase alphanumeric, 5-50 chars.
-  acr_name = var.acr_name_override != null ? lower(var.acr_name_override) : "docmanacr${substr(md5("${local.name_seed}-acr"), 0, 16)}"
+  acr_name = "docmanacr${substr(md5("${local.name_seed}-acr"), 0, 16)}"
 
   # Storage Account: lowercase alphanumeric, 3-24 chars.
-  storage_account_name = var.storage_account_name_override != null ? lower(var.storage_account_name_override) : "docmanst${substr(md5("${local.name_seed}-storage"), 0, 16)}"
+  storage_account_name = "docmanst${substr(md5("${local.name_seed}-storage"), 0, 16)}"
 
   # Azure SQL server names are globally unique.
-  sql_server_name = var.sql_server_name_override != null ? lower(var.sql_server_name_override) : "docman-sql-servertf-${substr(md5("${local.name_seed}-sql"), 0, 10)}"
+  sql_server_name = "docman-sql-servertf-${substr(md5("${local.name_seed}-sql"), 0, 10)}"
 }
 
 resource "azurerm_container_registry" "acr" {
