@@ -33,23 +33,45 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex items-center justify-center pt-20">
-      <div className="bg-white p-8 rounded-lg shadow-lg w-full max-w-md border border-slate-200">
+    <div className="flex items-center justify-center pt-20 bg-slate-50 min-h-screen">
+      <div className="bg-white/90 p-8 rounded-lg shadow-lg w-full max-w-md border border-slate-200 backdrop-blur-sm">
         <h1 className="text-2xl font-bold mb-6 text-slate-800 text-center">Sign In</h1>
+  
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label className="block text-sm font-medium text-slate-700">Email Address</label>
-            <input name="email" type="email" required className="mt-1 block w-full border border-slate-300 rounded px-3 py-2 focus:ring-slate-500 focus:border-slate-500" />
+            <label className="block text-sm font-medium text-slate-700">
+              Email Address
+            </label>
+            <input
+              name="email"
+              type="email"
+              required
+              className="mt-1 block w-full border border-slate-300 rounded px-3 py-2 bg-slate-50 focus:ring-slate-500 focus:border-slate-500"
+            />
           </div>
+  
           <div>
-            <label className="block text-sm font-medium text-slate-700">Password</label>
-            <input name="password" type="password" required className="mt-1 block w-full border border-slate-300 rounded px-3 py-2 focus:ring-slate-500 focus:border-slate-500" />
+            <label className="block text-sm font-medium text-slate-700">
+              Password
+            </label>
+            <input
+              name="password"
+              type="password"
+              required
+              className="mt-1 block w-full border border-slate-300 rounded px-3 py-2 bg-slate-50 focus:ring-slate-500 focus:border-slate-500"
+            />
           </div>
+  
           {error && <p className="text-red-500 text-sm">{error}</p>}
-          <button disabled={loading} className="w-full bg-slate-900 text-white py-2 rounded font-medium hover:bg-slate-800 transition-colors disabled:opacity-50">
+  
+          <button
+            disabled={loading}
+            className="w-full bg-slate-900 text-white py-2 rounded font-medium hover:bg-slate-800 transition-colors disabled:opacity-50"
+          >
             {loading ? "Authenticating..." : "Login"}
           </button>
         </form>
+  
         <p className="mt-6 text-center text-sm text-slate-600">
           {REGISTRATION_ENABLED ? (
             <>
