@@ -33,7 +33,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="flex items-center justify-center pt-20 bg-slate-50 min-h-screen">
+    <div className="flex items-center justify-center min-h-screen bg-slate-50">
       <div className="bg-white/90 p-8 rounded-lg shadow-lg w-full max-w-md border border-slate-200 backdrop-blur-sm">
         <h1 className="text-2xl font-bold mb-6 text-slate-800 text-center">Sign In</h1>
   
